@@ -1,0 +1,19 @@
+{
+  "name": "oficina-auth-cpf-function",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Azure Function serverless que autentica clientes da Oficina API por CPF e emite um JWT compatível com o backend Quarkus.",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start",
+    "test": "node --test test/cpfValidator.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.1"
+  }
+}

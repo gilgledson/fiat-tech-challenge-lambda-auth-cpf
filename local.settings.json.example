@@ -1,0 +1,18 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+
+    "DB_HOST": "oficina-postgres-server.postgres.database.azure.com",
+    "DB_PORT": "5432",
+    "DB_NAME": "postgres",
+    "DB_USER": "adminuser",
+    "DB_PASSWORD": "PREENCHER_LOCALMENTE_NUNCA_COMMITAR",
+    "DB_SSL": "true",
+
+    "JWT_ISSUER": "oficina-api-interna",
+    "JWT_EXPIRES_IN_SECONDS": "28800",
+    "JWT_PRIVATE_KEY": "PREENCHER_LOCALMENTE_COM_O_CONTEUDO_DE_src/main/resources/privateKey.pem_NUNCA_COMMITAR"
+  }
+}
