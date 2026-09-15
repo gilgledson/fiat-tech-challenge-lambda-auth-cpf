@@ -13,7 +13,7 @@ resource "random_string" "function_storage_suffix" {
 resource "azurerm_storage_account" "function_storage" {
   name                     = "oficinafn${random_string.function_storage_suffix.result}"
   resource_group_name      = data.azurerm_resource_group.oficina_rg.name
-  location                 = data.azurerm_resource_group.oficina_rg.location
+  location                 = var.function_location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
@@ -22,7 +22,7 @@ resource "azurerm_storage_account" "function_storage" {
 resource "azurerm_service_plan" "function_plan" {
   name                = "oficina-auth-cpf-plan"
   resource_group_name = data.azurerm_resource_group.oficina_rg.name
-  location            = data.azurerm_resource_group.oficina_rg.location
+  location            = var.function_location
   os_type             = "Linux"
   sku_name            = "Y1" # Consumption plan
 }
@@ -30,7 +30,7 @@ resource "azurerm_service_plan" "function_plan" {
 resource "azurerm_linux_function_app" "auth_cpf" {
   name                = "oficina-auth-cpf"
   resource_group_name = data.azurerm_resource_group.oficina_rg.name
-  location            = data.azurerm_resource_group.oficina_rg.location
+  location            = var.function_location
 
   storage_account_name       = azurerm_storage_account.function_storage.name
   storage_account_access_key = azurerm_storage_account.function_storage.primary_access_key

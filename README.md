@@ -107,10 +107,17 @@ terraform apply
 > aplicados primeiro) — este Terraform só lê esses recursos via `data
 > source`, nunca os cria.
 
-> **Nota conhecida**: a criação do `azurerm_service_plan` (Consumption/Y1)
-> pode falhar por falta de cota na assinatura Azure
-> (`401 — Current Limit (Y1 VMs): 0`). Ver detalhes e alternativas no
-> ADR-003 do repositório `oficina-app`.
+> **Nota sobre região**: os recursos desta Function (Storage Account,
+> Service Plan, Function App) são provisionados em `var.function_location`
+> (padrão `East US`), **diferente** da região do Resource Group
+> (`Brazil South`) — a assinatura Azure usada não tinha cota de Consumption
+> Plan (Y1 VMs) liberada em Brazil South
+> (`401 — Current Limit (Y1 VMs): 0`), e cota de Consumption Plan é por
+> região. Azure permite recursos em região diferente da do seu Resource
+> Group. Se East US também não tiver cota disponível na sua assinatura,
+> sobrescreva com `TF_VAR_function_location="outra-regiao"`. Ver
+> ADR-003 do repositório `oficina-app` para o histórico completo da
+> decisão.
 
 ### Código da Function
 

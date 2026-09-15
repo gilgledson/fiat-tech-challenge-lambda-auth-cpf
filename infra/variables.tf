@@ -4,6 +4,12 @@ variable "resource_group_name" {
   default     = "oficina-resources"
 }
 
+variable "function_location" {
+  description = "Região Azure só dos recursos desta Function (Storage Account, Service Plan, Function App) — separada da região do Resource Group (Brazil South). Motivo: a assinatura usada não tem cota de Consumption Plan (Y1 VMs) liberada em Brazil South (erro 401 'Current Limit (Y1 VMs): 0' no terraform apply). Cota de Consumption Plan é por região; regiões como East US costumam ter cota padrão liberada em assinaturas novas/trial. Ver ADR-003 no repositório oficina-app para o histórico completo."
+  type        = string
+  default     = "East US"
+}
+
 variable "postgres_server_name" {
   description = "Nome do Postgres Flexible Server já criado pelo repositório oficina-infra-banco-dados."
   type        = string
