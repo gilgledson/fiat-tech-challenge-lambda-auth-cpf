@@ -122,12 +122,9 @@ npm install
 func azure functionapp publish oficina-lambda-auth-cpf
 ```
 
-> **Nota de nomenclatura**: o Function App real na Azure se chama
-> `oficina-lambda-auth-cpf` (criado manualmente pelo Portal, ver "Nota
-> sobre o plano de hospedagem" abaixo) — diferente do nome
-> `oficina-auth-cpf` usado no `infra/function.tf`. Isso é uma divergência
-> conhecida entre o que o Terraform declara e o que existe de fato na
-> nuvem; ver seção seguinte.
+> O nome usado aqui (`oficina-lambda-auth-cpf`) já bate com o
+> `infra/function.tf` — o Terraform gerencia o Function App real, não uma
+> declaração divergente (ver seção "CI/CD" abaixo pra detalhes).
 
 ### CI/CD
 
@@ -139,21 +136,23 @@ App (`Azure/functions-action@v1`, usando a mesma Service Principal do
 outros 3 repositórios (infraestrutura nunca é aplicada automaticamente em
 CI, só validada com `terraform plan`).
 
-### ⚠️ Pendência: o Function App em si ainda não é gerenciado pelo Terraform
+### Terraform e a nuvem estão sincronizados
 
 O Function App (`oficina-lambda-auth-cpf`, plano **`FC1`/Flex Consumption**)
 foi criado **manualmente pelo Portal Azure** — `Y1` e `B1` falharam por cota
-zero na assinatura (ver ADR-003 no repositório `oficina-app`). A Storage
-Account de deployment, o Service Plan (SKU `FC1`) e o Application Insights
-que ele usa **já foram importados de verdade** pro `infra/function.tf` deste
-repositório (`terraform plan` limpo, sem drift) — só o recurso do Function
-App em si continua fora, porque representá-lo corretamente (plano Flex
-Consumption) exige o recurso `azurerm_function_app_flex_consumption`, que só
-existe a partir da **versão 4.x** do provider `azurerm`. Este repositório
-ainda está em `~> 3.0` (mesma versão dos outros 3 repositórios do projeto) —
-migrar pra v4 é uma mudança maior, com breaking changes em vários recursos,
-não só neste arquivo. Próximo passo: fazer esse upgrade isolado (só afeta o
-state deste repositório) e então importar o Function App também.
+zero na assinatura (ver ADR-003 no repositório `oficina-app`) — mas hoje é
+**gerenciado de verdade pelo Terraform**: o provider `azurerm` foi
+atualizado pra `~> 4.0` (necessário pro recurso
+`azurerm_function_app_flex_consumption`, que só existe a partir dessa
+versão) e o Function App, junto com a Storage Account de deployment, o
+Service Plan (SKU `FC1`) e o Application Insights, foram todos importados
+de verdade (`terraform import`). `terraform plan` limpo, sem drift.
+
+`app_settings` (variáveis de ambiente com segredos — `DB_PASSWORD`,
+`JWT_PRIVATE_KEY` etc.) continuam **fora** do Terraform de propósito
+(`lifecycle.ignore_changes`): configurados manualmente via
+`az functionapp config appsettings set`, nunca passam pelo state do
+Terraform nem por CI.
 
 ## Swagger / Postman
 
