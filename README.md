@@ -121,17 +121,44 @@ terraform apply
 ### Código da Function
 
 ```bash
-func azure functionapp publish oficina-auth-cpf
+cp local.settings.json.example local.settings.json
+npm install
+func azure functionapp publish oficina-lambda-auth-cpf
 ```
+
+> **Nota de nomenclatura**: o Function App real na Azure se chama
+> `oficina-lambda-auth-cpf` (criado manualmente pelo Portal, ver "Nota
+> sobre o plano de hospedagem" abaixo) — diferente do nome
+> `oficina-auth-cpf` usado no `infra/function.tf`. Isso é uma divergência
+> conhecida entre o que o Terraform declara e o que existe de fato na
+> nuvem; ver seção seguinte.
 
 ### CI/CD
 
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml) roda os testes a
-cada push/PR na `main`. O deploy do código
-(`func azure functionapp publish`) e o `terraform apply` continuam manuais
-nesta fase — mesma convenção adotada nos outros 3 repositórios (a infra via
-Terraform nunca é aplicada automaticamente em CI, só validada com
-`terraform plan`).
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml): a cada push na
+`main`, roda os testes e **publica o código automaticamente** no Function
+App (`Azure/functions-action@v1`, usando a mesma Service Principal do
+`AZURE_CREDENTIALS`) — mesmo padrão de deploy automático do repositório
+`oficina-app`. O `terraform apply` continua manual, mesma convenção dos
+outros 3 repositórios (infraestrutura nunca é aplicada automaticamente em
+CI, só validada com `terraform plan`).
+
+### ⚠️ Pendência: Terraform não gerencia o Function App real ainda
+
+O Function App e o App Service Plan que estão em produção
+(`oficina-lambda-auth-cpf`, plano **`FC1`/Flex Consumption**) foram criados
+**manualmente pelo Portal Azure**, não pelo `terraform apply` — o
+`infra/function.tf` deste repositório ainda declara os recursos com SKU
+`B1` (não `FC1`) e nome `oficina-auth-cpf` (não `oficina-lambda-auth-cpf`).
+Motivo: tanto `Y1` (Consumption) quanto `B1` (Basic) falharam por cota
+zero na assinatura (testado em duas regiões); só o Portal, usando o plano
+mais novo `FC1` (Flex Consumption), conseguiu provisionar. Um próximo passo
+é atualizar `infra/function.tf` para usar `FC1` (recurso
+`azurerm_function_app_flex_consumption`, disponível a partir de versões
+mais recentes do provider `azurerm`) e rodar `terraform import` nos
+recursos já existentes, para que o Terraform passe a gerenciá-los de
+verdade. Ver ADR-003 no repositório `oficina-app` para o histórico
+completo.
 
 ## Swagger / Postman
 
