@@ -1,8 +1,12 @@
 # Function Serverless de autenticação por CPF (Fase 3). Código em ../src.
-# Plano Consumption (Y1): paga só pelas execuções, sem custo de
-# infraestrutura ociosa — adequado para uma function de baixo volume como
-# essa. Ver ../../docs (ADR-003) no repositório oficina-app para o registro
-# da decisão e a pendência de cota conhecida.
+#
+# Plano B1 (Basic), não Y1 (Consumption): a assinatura Azure usada tem cota
+# zero pra VMs "Dynamic" (Y1) em toda a assinatura, não só numa região
+# específica — confirmado empiricamente (mesmo erro 401 em Brazil South e
+# em East US). B1 é compute "normal" (B-series), sem essa restrição de
+# cota, mas fica sempre ligado (custo fixo baixo, sem escalar a zero). Ver
+# ADR-003 no repositório oficina-app, seção "Atualização 2", para o
+# histórico completo da decisão.
 
 resource "random_string" "function_storage_suffix" {
   length  = 6
@@ -24,7 +28,7 @@ resource "azurerm_service_plan" "function_plan" {
   resource_group_name = data.azurerm_resource_group.oficina_rg.name
   location            = var.function_location
   os_type             = "Linux"
-  sku_name            = "Y1" # Consumption plan
+  sku_name            = var.function_plan_sku
 }
 
 resource "azurerm_linux_function_app" "auth_cpf" {

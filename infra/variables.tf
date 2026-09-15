@@ -5,9 +5,15 @@ variable "resource_group_name" {
 }
 
 variable "function_location" {
-  description = "Região Azure só dos recursos desta Function (Storage Account, Service Plan, Function App) — separada da região do Resource Group (Brazil South). Motivo: a assinatura usada não tem cota de Consumption Plan (Y1 VMs) liberada em Brazil South (erro 401 'Current Limit (Y1 VMs): 0' no terraform apply). Cota de Consumption Plan é por região; regiões como East US costumam ter cota padrão liberada em assinaturas novas/trial. Ver ADR-003 no repositório oficina-app para o histórico completo."
+  description = "Região Azure só dos recursos desta Function (Storage Account, Service Plan, Function App) — separada da região do Resource Group (Brazil South)."
   type        = string
   default     = "East US"
+}
+
+variable "function_plan_sku" {
+  description = "SKU do Service Plan da Function. 'Y1' (Consumption, serverless de verdade) é o ideal, mas a assinatura Azure usada tem cota zero pra VMs Dynamic (Y1) em toda a assinatura — confirmado em Brazil South e East US, então o padrão aqui é 'B1' (Basic, sempre ligado, custo fixo baixo, sem essa restrição de cota). Troque de volta pra 'Y1' se conseguir aumento de cota."
+  type        = string
+  default     = "B1"
 }
 
 variable "postgres_server_name" {

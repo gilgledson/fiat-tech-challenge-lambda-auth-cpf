@@ -47,7 +47,7 @@ estar no ar.
 - Node.js 18+, [Azure Functions Programming Model v4](https://learn.microsoft.com/azure/azure-functions/functions-reference-node)
 - [`jsonwebtoken`](https://www.npmjs.com/package/jsonwebtoken) — assina o JWT em RS256
 - [`pg`](https://node-postgres.com/) — consulta direta ao Postgres
-- Terraform (`infra/`) — provisiona a Function App (Consumption Plan) e sua Storage Account própria
+- Terraform (`infra/`) — provisiona a Function App (plano B1/Basic, ver nota abaixo) e sua Storage Account própria
 
 ## Variáveis de ambiente (App Settings da Function)
 
@@ -107,17 +107,16 @@ terraform apply
 > aplicados primeiro) — este Terraform só lê esses recursos via `data
 > source`, nunca os cria.
 
-> **Nota sobre região**: os recursos desta Function (Storage Account,
-> Service Plan, Function App) são provisionados em `var.function_location`
-> (padrão `East US`), **diferente** da região do Resource Group
-> (`Brazil South`) — a assinatura Azure usada não tinha cota de Consumption
-> Plan (Y1 VMs) liberada em Brazil South
-> (`401 — Current Limit (Y1 VMs): 0`), e cota de Consumption Plan é por
-> região. Azure permite recursos em região diferente da do seu Resource
-> Group. Se East US também não tiver cota disponível na sua assinatura,
-> sobrescreva com `TF_VAR_function_location="outra-regiao"`. Ver
-> ADR-003 do repositório `oficina-app` para o histórico completo da
-> decisão.
+> **Nota sobre o plano de hospedagem**: o padrão é `var.function_plan_sku =
+> "B1"` (Basic), **não** `Y1` (Consumption) — a assinatura Azure usada tem
+> cota zero pra VMs "Dynamic" (Y1) em **toda a assinatura**, confirmado com
+> o mesmo erro 401 (`Current Limit (Y1 VMs): 0`) tanto em `Brazil South`
+> quanto em `East US` (`var.function_location`, região só dos recursos
+> desta Function). B1 é compute normal, sem essa restrição — funciona, mas
+> fica sempre ligado (custo fixo baixo, sem escalar a zero). Se sua
+> assinatura tiver cota de Consumption liberada, sobrescreva com
+> `TF_VAR_function_plan_sku="Y1"`. Ver ADR-003 (seção "Atualização 2") do
+> repositório `oficina-app` para o histórico completo da decisão.
 
 ### Código da Function
 
