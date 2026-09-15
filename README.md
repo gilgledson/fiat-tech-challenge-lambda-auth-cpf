@@ -4,12 +4,14 @@ Function Serverless (Azure Functions, Node.js) que autentica **clientes** da
 Oficina API por CPF, sem exigir e-mail/senha. Um dos 4 repositórios do Tech
 Challenge Fase 3 — ver os outros:
 
-- [oficina-app](https://github.com/SEU_USUARIO/oficina-app) — aplicação principal (Quarkus, roda em Kubernetes)
-- [oficina-infra-kubernetes](https://github.com/SEU_USUARIO/oficina-infra-kubernetes) — Terraform do cluster AKS + API Gateway
-- [oficina-infra-banco-dados](https://github.com/SEU_USUARIO/oficina-infra-banco-dados) — Terraform do Postgres gerenciado
+- [oficina-app](https://github.com/gilgledson/fiat-tech-challenge-app) — aplicação principal (Quarkus, roda em Kubernetes)
+- [oficina-infra-kubernetes](https://github.com/gilgledson/fiat-tech-challenge-infra-kubernetes) — Terraform do cluster AKS + API Gateway
+- [oficina-infra-banco-dados](https://github.com/gilgledson/fiat-tech-challenge-infra-database) — Terraform do Postgres gerenciado
 
-> Atualize os links acima com as URLs reais assim que os repositórios forem
-> criados no GitHub.
+**Endpoint em produção**:
+`https://oficina-lambda-auth-cpf-efedakf9cfh7dtbd.brazilsouth-01.azurewebsites.net/api/auth/cpf`
+— validado: CPF inválido → `400`, cliente não encontrado → `404` (conexão
+com o Postgres confirmada).
 
 ## Propósito
 
