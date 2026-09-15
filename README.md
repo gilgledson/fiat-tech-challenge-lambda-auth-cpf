@@ -98,27 +98,21 @@ API principal) vive na collection Postman do repositório `oficina-app`
 ```bash
 cd infra
 terraform init
-export TF_VAR_db_admin_password="a mesma senha do repositório oficina-infra-banco-dados"
-export TF_VAR_jwt_private_key_pem="$(cat ../../oficina-app/src/main/resources/privateKey.pem)"
 terraform plan
 terraform apply
 ```
 
-> A infraestrutura de Resource Group e do Postgres já precisa existir
-> (repositórios `oficina-infra-kubernetes` e `oficina-infra-banco-dados`
-> aplicados primeiro) — este Terraform só lê esses recursos via `data
-> source`, nunca os cria.
+> A infraestrutura de Resource Group já precisa existir (repositório
+> `oficina-infra-kubernetes` aplicado primeiro) — este Terraform só lê esse
+> recurso via `data source`, nunca o cria.
 
-> **Nota sobre o plano de hospedagem**: o padrão é `var.function_plan_sku =
-> "B1"` (Basic), **não** `Y1` (Consumption) — a assinatura Azure usada tem
-> cota zero pra VMs "Dynamic" (Y1) em **toda a assinatura**, confirmado com
-> o mesmo erro 401 (`Current Limit (Y1 VMs): 0`) tanto em `Brazil South`
-> quanto em `East US` (`var.function_location`, região só dos recursos
-> desta Function). B1 é compute normal, sem essa restrição — funciona, mas
-> fica sempre ligado (custo fixo baixo, sem escalar a zero). Se sua
-> assinatura tiver cota de Consumption liberada, sobrescreva com
-> `TF_VAR_function_plan_sku="Y1"`. Ver ADR-003 (seção "Atualização 2") do
-> repositório `oficina-app` para o histórico completo da decisão.
+> **Nota sobre o plano de hospedagem**: o Function App real roda no plano
+> **`FC1` (Flex Consumption)** — `Y1` (Consumption) e `B1` (Basic) falharam
+> por cota zero na assinatura, testado em duas regiões (mesmo erro 401,
+> `Current Limit (Y1 VMs): 0` / `(B1 VMs): 0`). Só o Portal Azure, usando o
+> plano mais novo FC1 (família de cota própria), conseguiu provisionar. Ver
+> ADR-003 (seção "Atualização 3") do repositório `oficina-app` para o
+> histórico completo da decisão.
 
 ### Código da Function
 
@@ -145,22 +139,21 @@ App (`Azure/functions-action@v1`, usando a mesma Service Principal do
 outros 3 repositórios (infraestrutura nunca é aplicada automaticamente em
 CI, só validada com `terraform plan`).
 
-### ⚠️ Pendência: Terraform não gerencia o Function App real ainda
+### ⚠️ Pendência: o Function App em si ainda não é gerenciado pelo Terraform
 
-O Function App e o App Service Plan que estão em produção
-(`oficina-lambda-auth-cpf`, plano **`FC1`/Flex Consumption**) foram criados
-**manualmente pelo Portal Azure**, não pelo `terraform apply` — o
-`infra/function.tf` deste repositório ainda declara os recursos com SKU
-`B1` (não `FC1`) e nome `oficina-auth-cpf` (não `oficina-lambda-auth-cpf`).
-Motivo: tanto `Y1` (Consumption) quanto `B1` (Basic) falharam por cota
-zero na assinatura (testado em duas regiões); só o Portal, usando o plano
-mais novo `FC1` (Flex Consumption), conseguiu provisionar. Um próximo passo
-é atualizar `infra/function.tf` para usar `FC1` (recurso
-`azurerm_function_app_flex_consumption`, disponível a partir de versões
-mais recentes do provider `azurerm`) e rodar `terraform import` nos
-recursos já existentes, para que o Terraform passe a gerenciá-los de
-verdade. Ver ADR-003 no repositório `oficina-app` para o histórico
-completo.
+O Function App (`oficina-lambda-auth-cpf`, plano **`FC1`/Flex Consumption**)
+foi criado **manualmente pelo Portal Azure** — `Y1` e `B1` falharam por cota
+zero na assinatura (ver ADR-003 no repositório `oficina-app`). A Storage
+Account de deployment, o Service Plan (SKU `FC1`) e o Application Insights
+que ele usa **já foram importados de verdade** pro `infra/function.tf` deste
+repositório (`terraform plan` limpo, sem drift) — só o recurso do Function
+App em si continua fora, porque representá-lo corretamente (plano Flex
+Consumption) exige o recurso `azurerm_function_app_flex_consumption`, que só
+existe a partir da **versão 4.x** do provider `azurerm`. Este repositório
+ainda está em `~> 3.0` (mesma versão dos outros 3 repositórios do projeto) —
+migrar pra v4 é uma mudança maior, com breaking changes em vários recursos,
+não só neste arquivo. Próximo passo: fazer esse upgrade isolado (só afeta o
+state deste repositório) e então importar o Function App também.
 
 ## Swagger / Postman
 
