@@ -34,7 +34,7 @@ POST /api/auth/cpf   { "cpf": "529.982.247-25" }
 
 O token emitido usa a **mesma chave RSA e o mesmo issuer** que a API Quarkus
 (`oficina-app`) já usa para os logins por e-mail/senha — ver
-[ADR-004](https://github.com/SEU_USUARIO/oficina-app/blob/main/docs/architecture/adr-004-jwt-compartilhado-entre-servicos.md)
+[ADR-004](https://github.com/gilgledson/fiat-tech-challenge-app/blob/main/docs/architecture/adr-004-jwt-compartilhado-entre-servicos.md)
 no repositório da aplicação principal para o racional completo dessa
 decisão. Isso significa que o `@RolesAllowed({"CLIENTE"})` já existente nos
 endpoints da API valida esse token **sem nenhuma alteração de código** do
